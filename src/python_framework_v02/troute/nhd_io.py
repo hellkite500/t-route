@@ -75,7 +75,7 @@ def replace_downstreams(data, downstream_col, terminal_code):
 def read_waterbody_df(waterbody_parameters, waterbodies_values, wbtype="level_pool"):
     """
     General waterbody dataframe reader. At present, only level-pool
-    capability exists. 
+    capability exists.
     """
     if wbtype == "level_pool":
         wb_params = waterbody_parameters[wbtype]
@@ -90,14 +90,14 @@ def read_level_pool_waterbody_df(
     parm_file, lake_index_field="lake_id", lake_id_mask=None
 ):
     """
-    Reads LAKEPARM file and prepares a dataframe, filtered 
+    Reads LAKEPARM file and prepares a dataframe, filtered
     to the relevant reservoirs, to provide the parameters
     for level-pool reservoir computation.
 
     Completely replaces the read_waterbody_df function from prior versions
     of the v02 routing code.
 
-    Prior version filtered the dataframe as opposed to the dataset as in this version. 
+    Prior version filtered the dataframe as opposed to the dataset as in this version.
     with xr.open_dataset(parm_file) as ds:
         df1 = ds.to_dataframe()
     df1 = df1.set_index(lake_index_field).sort_index(axis="index")
@@ -219,7 +219,7 @@ def get_stream_restart_from_wrf_hydro(
     qdf2 = qdf2.reset_index().set_index([channel_ID_column])
 
     q_initial_states = qdf2
-    
+
     q_initial_states = q_initial_states.drop(columns = "index")
 
     return q_initial_states

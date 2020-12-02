@@ -2,7 +2,7 @@
 # coding: utf-8
 # example usage: python next_gen_network.py -n sugar_creek_waterbody_data_subset.geojson
 
-"""This program reads in and modifies lateral flows from the next generation water modeling framework and feeds them into mc_reach.compute_network. 
+"""This program reads in and modifies lateral flows from the next generation water modeling framework and feeds them into mc_reach.compute_network.
 This program presupposes that the mc_reach has been compiled prior to running."""
 import os
 import sys
@@ -79,7 +79,11 @@ def main():
     subnets = nhd_network.reachable_network(rconn, check_disjoint=False)
 
     waterbody_df['dt'] = 300.0
-
+    ####
+    # value from routelink at downstream nexus applied to flowpath
+    #
+    #
+    ####
     #Setting all below to 1.0 until we can get the appropriate parameters
     waterbody_df['bw'] = 1.0
     waterbody_df['tw'] = 1.0
@@ -89,7 +93,8 @@ def main():
     waterbody_df['ncc'] = 1.0
     waterbody_df['cs'] = 1.0
     waterbody_df['s0'] = 1.0
-
+    waterbody_df['comid'] = waterbody_df['comid'].apply(lambda x: crosswalk['fp'+str(x.name)]['outlet_comid'])
+    waterbody_df.join(route_link_df, '')
     #Set types as float32
     waterbody_df = waterbody_df.astype({"dt": "float32", "bw": "float32", "tw": "float32", "twcc": "float32", "dx": "float32", "n": "float32", "ncc": "float32", "cs": "float32", "s0": "float32"})
 

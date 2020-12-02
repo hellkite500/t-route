@@ -1,0 +1,107 @@
+cimport numpy as np
+import numpy as np
+from libc.stdlib cimport malloc, free
+
+"""
+cdef class Network:
+  cdef np.ndarray reachs
+
+  def __init__():
+    pass
+
+  cdef route(self):
+    with nogil:
+      for reach in reaches:
+        reach.route()
+"""
+
+cdef class Reach:
+  """
+    Encapsulation of basic reach properties and functionality
+  """
+  cdef readonly int id;
+  #Keep a python list of ids only for pre/post processing and diagnostics
+  cdef readonly list to_ids
+  cdef np.ndarray _to_ids
+
+  def __init__(self, int id, list to_ids):
+    """
+      Initialize the base properties
+    """
+    self.id = id
+    self.to_ids = to_ids
+    self._to_ids = np.zeros(len(to_ids), dtype=long)
+    for i in range(len(to_ids)):
+      self._to_ids[i] = to_ids[i]
+
+cdef class Segment():
+  """
+    A Single routing segment
+  """
+  #cdef long id
+  #cdef long upstream_id
+  #cdef long downstream_id
+
+  def __init__(self, id, upstream, downstream):
+    """
+
+    """
+    self.id = id
+    self.upstream_id = upstream
+    self.downstream_id = downstream
+
+#ctypedef struct _mc_segment:
+#  float dt, dx, bw, tw, twcc, n, ncc, cs, s0, qdp, velp, depthp
+
+cdef class MC_Segment(Segment):
+  """
+    A single segment that compes
+  """
+
+  def __init__(self, id, dt, dx, bw, tw, twcc, n, ncc, cs, s0, qdp, velp, depthp):
+    """
+      construct the kernel based on passed parameters
+    """
+    super().__init__(id, -1, -1)
+    self.dt = dt
+    self.dx = dx
+    self.bw = bw
+    self.tw = tw
+    self.twcc = twcc
+    self.n = n
+    self.ncc = ncc
+    self.cs = cs
+    self.s0 = s0
+    self.qdp = qdp
+    self.velp = velp
+    self.depthp = depthp
+
+cdef class MC_Reach():
+  """
+    A muskingcung reach
+  """
+  #TODO document these attributes
+  #cdef float dt, dx, bw, tw, twcc, n, ncc, cs, s0, qdp, velp, depthp
+  #cdef list segments
+  #cdef _mc_segment* _segments
+  #cdef int _num_segments
+
+  def __init__(self, segments, long[::1] upstream_ids):
+    self.segments = segments
+    self.upstream_ids = np.asarray(upstream_ids)#.reshape((1, -1))
+    #self._num_segments = len(segments)
+    #self._segments = malloc(sizeof(_mc_segment)*self._num_segments)
+    #for i in range(self._num_segments):
+    #  _segments[i].dt = segments[i].dt
+
+  #def __dealloc__(self):
+  #  free(_segments)
+
+  cdef route(self):
+    """
+
+    """
+    #do a few things with gil
+    #with nogil:
+    #  pass
+    pass

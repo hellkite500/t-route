@@ -6,6 +6,7 @@
 *.exe
 *.o
 *.so
+*.a
 _site/
 
 # Packages #
@@ -46,6 +47,7 @@ Thumbs.db
 *.pyc
 *.egg-info/
 __pycache__/
+.pytest_cache/
 *.py[cod]
 .env
 .python-version
@@ -75,3 +77,13 @@ bower_components/
 .grunt/
 src/vendor/
 dist/
+
+# Cython #
+build/
+
+# TMP #
+*kernels/
+*.out
+*.prof
+*.csv
+*.c
