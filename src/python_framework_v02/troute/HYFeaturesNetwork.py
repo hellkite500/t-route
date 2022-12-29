@@ -91,7 +91,11 @@ def read_qlats(forcing_parameters, segment_index, nexus_to_downstream_flowpath_d
     rt1 = time.time()
     #print("Time to build nexus_flows_df: {} seconds".format(rt1-rt0))
 
-    qlat_df = pd.concat( (nexuses_flows_df.loc[int(k)].rename(index={int(k):v})
+    #This could probably just be the following (or something close):
+    #qlat_df = nexuses_flows_df.rename(index=nexus_to_downstream_flowpath_dict)
+    #FIXME this bug exposes issues with _flowpath_dict (nexus_to_downstream_flowpath_dict)
+    #being in the wrong order -- which then in turn requires handling headwater/terminal cases
+    qlat_df = pd.concat( (nexuses_flows_df.loc[int(k)].rename( v )
         for k,v in nexus_to_downstream_flowpath_dict.items() ), axis=1
         ).T
 
@@ -179,16 +183,22 @@ def read_json(file_path, edge_list):
     dfs = []
     with open(edge_list) as edge_file:
         edge_data = json.load(edge_file)
-        edge_map = {}
+        to_edge_map = {}
+        from_edge_map = {}
         for id_dict in edge_data:
+            # id_dict should be { 'id': 'X', 'toid': 'Y'}
             id_dict = {k.lower(): v for k, v in id_dict.items()}
-            edge_map[ id_dict['id'] ] = id_dict['toid']
+            # essentially unrolling the list of edges into a single map
+            to_edge_map[ id_dict['id'] ] = id_dict['toid']
+            from_edge_map[ id_dict['toid'] ] = id_dict['id']
         with open(file_path) as data_file:
             json_data = json.load(data_file)  
             for key_wb, value_params in json_data.items():
                 df = pd.json_normalize(value_params)
                 df['id'] = key_wb
-                df['toid'] = edge_map[key_wb]
+                #this gives us waterbody -> nexus topology (should match toID in attribute table, but this is explicit)
+                df['toid'] = to_edge_map[key_wb]
+                df['fromid'] = from_edge_map[key_wb]
                 dfs.append(df)
         df_main = pd.concat(dfs, ignore_index=True)
 
@@ -198,6 +208,7 @@ def read_geopkg(file_path):
     flowpaths = gpd.read_file(file_path, layer="flowpaths")
     attributes = gpd.read_file(file_path, layer="flowpath_attributes").drop('geometry', axis=1)
     #merge all relevant data into a single dataframe
+    #FIXME use nexus layer to ensure `toid` is mapped based on nexus topology, not attribute?
     flowpaths = pd.merge(flowpaths, attributes, on='id')
 
     return flowpaths
@@ -251,6 +262,9 @@ class HYFeaturesNetwork(AbstractNetwork):
         #make the flowpath linkage.  Since we can/do add flow at terminal nodes,
         #we include all nodes here, even if the qlat of that terminal is adjusted
         #to another node upstream later.
+        #FIXME why is this backwards??? and why does terminal mapping still work when it is backwards?
+        #What we really want is is the toid of the toid, that is, a dict of nexus keys and the toid of that nexus
+        #but what we have is is a single direction of the flowpah from nexus to UPSTREAM
         self._flowpath_dict = dict(zip(self._dataframe.toid, self._dataframe.id))
         self._waterbody_types_df = pd.DataFrame()
         self._waterbody_df = pd.DataFrame()
